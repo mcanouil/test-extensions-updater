@@ -15,6 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
       - uses: mcanouil/quarto-extensions-updater@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
