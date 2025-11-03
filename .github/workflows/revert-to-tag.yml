@@ -1,0 +1,95 @@
+name: Revert to Last Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to revert to (leave empty for latest tag)'
+        required: false
+        type: string
+      create-tag-before-revert:
+        description: 'Create backup tag before reverting'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  revert:
+    runs-on: ubuntu-latest
+    name: Revert repository to specified tag
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create backup tag
+        if: inputs.create-tag-before-revert == true || inputs.create-tag-before-revert == ''
+        run: |
+          BACKUP_TAG="backup-$(date +'%Y%m%d-%H%M%S')"
+          git tag -a "$BACKUP_TAG" -m "Backup before revert to tag"
+          git push origin "$BACKUP_TAG"
+          echo "Created backup tag: $BACKUP_TAG"
+
+      - name: Determine target tag
+        id: target
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TARGET_TAG="${{ inputs.tag }}"
+          else
+            TARGET_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -z "$TARGET_TAG" ]; then
+              echo "No tags found in repository. Creating initial tag..."
+              git tag -a "v1.0.0" -m "Initial tag for revert workflow"
+              git push origin "v1.0.0"
+              TARGET_TAG="v1.0.0"
+            fi
+          fi
+          echo "target-tag=$TARGET_TAG" >> $GITHUB_OUTPUT
+          echo "Target tag: $TARGET_TAG"
+
+      - name: Revert to tag
+        run: |
+          TARGET_TAG="${{ steps.target.outputs.target-tag }}"
+          echo "Reverting to tag: $TARGET_TAG"
+
+          # Get the commit hash of the tag
+          TAG_COMMIT=$(git rev-list -n 1 "$TARGET_TAG")
+          echo "Tag commit: $TAG_COMMIT"
+
+          # Reset to the tag
+          git reset --hard "$TAG_COMMIT"
+
+      - name: Force push to main branch
+        run: |
+          git push origin main --force
+
+      - name: Summary
+        run: |
+          echo "Repository reverted to tag: ${{ steps.target.outputs.target-tag }}"
+          echo "Current HEAD:"
+          git log -1 --oneline
+          echo ""
+          echo "Use 'git pull --force' locally to sync your local repository"
+
+      - name: Create workflow summary
+        run: |
+          echo "## Revert Completed :arrows_counterclockwise:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Tag**: \`${{ steps.target.outputs.target-tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Current State" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          git log -1 --pretty=format:"%H - %s (%an, %ar)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> :warning: **Note**: Local repositories will need to run \`git pull --force\` or \`git reset --hard origin/main\` to sync." >> $GITHUB_STEP_SUMMARY
