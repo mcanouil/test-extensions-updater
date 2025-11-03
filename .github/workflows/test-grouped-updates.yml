@@ -1,0 +1,37 @@
+name: Test Grouped Updates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-grouped:
+    runs-on: ubuntu-latest
+    name: Test grouped updates in single PR
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Update Quarto extensions (grouped)
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          group-updates: true
+          branch-prefix: chore/quarto-extensions-grouped
+          commit-message: "chore: Update all Quarto extensions"
+          pr-title: "chore: Update all Quarto extensions"
+          pr-body: |
+            This PR updates all available Quarto extensions in a single grouped update.
+
+            **Testing**: Grouped updates mode

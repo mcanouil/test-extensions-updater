@@ -1,0 +1,69 @@
+name: Test Dry Run Mode
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 11 * * *"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test-dry-run:
+    runs-on: ubuntu-latest
+    name: Test dry-run mode (no PR creation)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Check for updates (dry-run)
+        id: dry-run
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          dry-run: true
+          create-pr: false
+
+      - name: Display dry-run results
+        run: |
+          echo "Updates available: ${{ steps.dry-run.outputs.updates-available }}"
+          echo "Update count: ${{ steps.dry-run.outputs.update-count }}"
+          echo "Updates: ${{ steps.dry-run.outputs.updates }}"
+
+  test-dry-run-with-pr-disabled:
+    runs-on: ubuntu-latest
+    name: Test dry-run with PR creation disabled
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Check for updates (no PR)
+        id: check-updates
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: false
+
+      - name: Create issue if updates available
+        if: steps.check-updates.outputs.updates-available == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const updates = JSON.parse('${{ steps.check-updates.outputs.updates }}');
+            const updateList = updates.map(u => `- ${u.name}: ${u.currentVersion} → ${u.latestVersion}`).join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Quarto Extension Updates Available (${updates.length})`,
+              body: `## Available Updates\n\n${updateList}\n\nRun the updater workflow to create PRs.`
+            });

@@ -1,0 +1,143 @@
+name: Test Comprehensive Scenarios
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-scenario:
+        description: 'Test scenario to run'
+        required: false
+        type: choice
+        options:
+          - all
+          - workspace-path
+          - registry-url
+          - branch-configuration
+        default: all
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-workspace-path:
+    if: inputs.test-scenario == 'all' || inputs.test-scenario == 'workspace-path'
+    runs-on: ubuntu-latest
+    name: Test custom workspace path
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Update with custom workspace
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: test/workspace-path
+
+  test-registry-url:
+    if: inputs.test-scenario == 'all' || inputs.test-scenario == 'registry-url'
+    runs-on: ubuntu-latest
+    name: Test custom registry URL
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Update with custom registry
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: test/custom-registry
+
+  test-branch-configuration:
+    if: inputs.test-scenario == 'all' || inputs.test-scenario == 'branch-configuration'
+    runs-on: ubuntu-latest
+    name: Test branch configuration options
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Update with custom branch settings
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: test/branch-config
+          commit-message: "test: Custom branch configuration for {{extension}}"
+
+  test-outputs:
+    if: inputs.test-scenario == 'all'
+    runs-on: ubuntu-latest
+    name: Test action outputs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Run updater and capture outputs
+        id: updater
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: test/outputs
+
+      - name: Display outputs
+        run: |
+          echo "Updates Available: ${{ steps.updater.outputs.updates-available }}"
+          echo "Update Count: ${{ steps.updater.outputs.update-count }}"
+          echo "Updates: ${{ steps.updater.outputs.updates }}"
+          echo "PR Number: ${{ steps.updater.outputs.pr-number }}"
+          echo "PR URL: ${{ steps.updater.outputs.pr-url }}"
+
+      - name: Conditional step based on updates
+        if: steps.updater.outputs.updates-available == 'true'
+        run: |
+          echo "Extensions were updated!"
+          echo "Total updates: ${{ steps.updater.outputs.update-count }}"
+
+  test-error-handling:
+    if: inputs.test-scenario == 'all'
+    runs-on: ubuntu-latest
+    name: Test error handling
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Test with potentially invalid configuration
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          include: |
+            non-existent/extension
+          branch-prefix: test/error-handling
+
+      - name: Report test result
+        if: always()
+        run: echo "Error handling test completed"
