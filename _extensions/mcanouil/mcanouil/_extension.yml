@@ -6,3 +6,4 @@ contributes:
   metadata:
     project:
       brand: brand.yml
+source: mcanouil/quarto-mcanouil@0.1.5

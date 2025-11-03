@@ -5,3 +5,4 @@ quarto-required: ">=1.4.550"
 contributes:
   filters:
     - highlight-text.lua
+source: mcanouil/quarto-highlight-text@1.0.0

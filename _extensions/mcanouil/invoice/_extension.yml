@@ -9,3 +9,4 @@ contributes:
       template-partials:
         - typst-template.typ
         - typst-show.typ
+source: mcanouil/quarto-invoice@1.2.4
