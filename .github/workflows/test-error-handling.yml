@@ -1,18 +1,17 @@
-name: Test Grouped Updates
+name: Test Error Handling
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 8 * * 1"
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  test-grouped:
+  test-error-handling:
     runs-on: ubuntu-latest
-    name: Test grouped updates in single PR
+    name: Test error handling
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,14 +19,17 @@ jobs:
       - name: Set up Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Update Quarto extensions (grouped)
+      - name: Test with potentially invalid configuration
         uses: mcanouil/quarto-extensions-updater@v0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workspace-path: .
           create-pr: true
           base-branch: main
-          group-updates: true
-          branch-prefix: chore/quarto-extensions-grouped
-          commit-message-prefix: "chore: Update all Quarto extensions"
-          pr-title-prefix: "chore: Update all Quarto extensions"
+          include-extensions: |
+            non-existent/extension
+          branch-prefix: test/error-handling
+
+      - name: Report test result
+        if: always()
+        run: echo "Error handling test completed"

@@ -1,0 +1,39 @@
+name: Test Custom PR Options
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 17 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-custom-pr-options:
+    runs-on: ubuntu-latest
+    name: Test custom PR titles, labels, and assignees
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Update with custom PR configuration
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: deps/quarto-extensions
+          commit-message-prefix: "build(deps): Update Quarto extensions"
+          pr-title-prefix: ":arrow_up: Update Quarto extensions"
+          pr-labels: |
+            dependencies
+            quarto
+            extensions
+            automated
+          pr-assignees: mcanouil
+          pr-reviewers: mcanouil

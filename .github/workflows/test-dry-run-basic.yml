@@ -1,0 +1,36 @@
+name: Test Dry Run Basic
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 15 * * *"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  test-dry-run:
+    runs-on: ubuntu-latest
+    name: Test dry-run mode (no PR creation)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Check for updates (dry-run)
+        id: dry-run
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          dry-run: true
+          create-pr: false
+
+      - name: Display dry-run results
+        run: |
+          echo "Updates available: ${{ steps.dry-run.outputs.updates-available }}"
+          echo "Update count: ${{ steps.dry-run.outputs.update-count }}"
+          echo "Updates: ${{ steps.dry-run.outputs.updates }}"

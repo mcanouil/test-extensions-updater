@@ -1,0 +1,43 @@
+name: Test Outputs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-outputs:
+    runs-on: ubuntu-latest
+    name: Test action outputs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Quarto CLI
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Run updater and capture outputs
+        id: updater
+        uses: mcanouil/quarto-extensions-updater@v0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          workspace-path: .
+          create-pr: true
+          base-branch: main
+          branch-prefix: test/outputs
+
+      - name: Display outputs
+        run: |
+          echo "Updates Available: ${{ steps.updater.outputs.updates-available }}"
+          echo "Update Count: ${{ steps.updater.outputs.update-count }}"
+          echo "Updates: ${{ steps.updater.outputs.updates }}"
+          echo "PR Number: ${{ steps.updater.outputs.pr-number }}"
+          echo "PR URL: ${{ steps.updater.outputs.pr-url }}"
+
+      - name: Conditional step based on updates
+        if: steps.updater.outputs.updates-available == 'true'
+        run: |
+          echo "Extensions were updated!"
+          echo "Total updates: ${{ steps.updater.outputs.update-count }}"
