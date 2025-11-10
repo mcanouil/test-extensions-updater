@@ -2,8 +2,6 @@ name: Test Minimal PR
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 18 * * 1"
 
 permissions:
   contents: write

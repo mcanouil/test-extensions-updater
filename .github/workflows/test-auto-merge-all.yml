@@ -2,8 +2,6 @@ name: Test Auto-Merge All
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 11 * * 1"
 
 permissions:
   contents: write

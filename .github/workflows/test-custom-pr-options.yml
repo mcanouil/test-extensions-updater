@@ -2,8 +2,6 @@ name: Test Custom PR Options
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 17 * * 1"
 
 permissions:
   contents: write

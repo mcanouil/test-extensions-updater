@@ -2,8 +2,6 @@ name: Test Dry Run Basic
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 15 * * *"
 
 permissions:
   contents: read

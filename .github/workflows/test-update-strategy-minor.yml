@@ -2,8 +2,6 @@ name: Test Update Strategy Minor
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 13 * * 1"
 
 permissions:
   contents: write
