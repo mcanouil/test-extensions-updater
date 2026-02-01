@@ -14,13 +14,15 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "release"
 
       - name: Test with potentially invalid configuration
-        uses: mcanouil/quarto-extensions-updater@v0
+        uses: mcanouil/quarto-extensions-updater@refactor/quarto-wizard-core
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workspace-path: .
