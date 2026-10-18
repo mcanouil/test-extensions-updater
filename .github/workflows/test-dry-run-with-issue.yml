@@ -14,7 +14,7 @@ jobs:
     name: Test dry-run with PR creation disabled
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
@@ -23,7 +23,7 @@ jobs:
 
       - name: Check for updates (no PR)
         id: check-updates
-        uses: mcanouil/quarto-extensions-updater@refactor/quarto-wizard-core
+        uses: mcanouil/quarto-extensions-updater@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workspace-path: .
@@ -31,7 +31,7 @@ jobs:
 
       - name: Create issue if updates available
         if: steps.check-updates.outputs.updates-available == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const updates = JSON.parse('${{ steps.check-updates.outputs.updates }}');
