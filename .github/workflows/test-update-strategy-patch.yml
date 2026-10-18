@@ -13,7 +13,7 @@ jobs:
     name: Test patch updates only
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
@@ -21,7 +21,7 @@ jobs:
           version: "release"
 
       - name: Update Quarto extensions (patch only)
-        uses: mcanouil/quarto-extensions-updater@refactor/quarto-wizard-core
+        uses: mcanouil/quarto-extensions-updater@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workspace-path: .

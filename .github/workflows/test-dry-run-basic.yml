@@ -13,7 +13,7 @@ jobs:
     name: Test dry-run mode (no PR creation)
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Quarto CLI
         uses: quarto-dev/quarto-actions/setup@v2
@@ -22,7 +22,7 @@ jobs:
 
       - name: Check for updates (dry-run)
         id: dry-run
-        uses: mcanouil/quarto-extensions-updater@refactor/quarto-wizard-core
+        uses: mcanouil/quarto-extensions-updater@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           workspace-path: .
